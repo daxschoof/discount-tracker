@@ -12,9 +12,15 @@ const getItem = async url => {
 	try {
 		await page.goto(url);
 		item = await page.evaluate(() => {
+			const name = document.querySelector("#productTitle");
+
+			let price_selector = document.querySelector("#priceblock_ourprice");
+			if (price_selector === null) {
+				price_selector = document.querySelector("#priceblock_dealprice");
+			}
 			return {
-				name: document.querySelector("#productTitle").innerText,
-				price: document.querySelector("#priceblock_ourprice").innerText,
+				name: name.innerText,
+				price: price_selector.innerText,
 			};
 		});
 		if (
@@ -27,7 +33,6 @@ const getItem = async url => {
 		}
 	} catch (err) {
 		console.log(err.message);
-		console.log("Item does not exist or URL is invalid.");
 	}
 
 	await browser.close();
@@ -39,8 +44,39 @@ const checkPrices = async () => {
 	return;
 };
 
-const sendPriceMail = async (product, price, link) => {
+const sendPriceMail = async (product, price, url, email) => {
 	return;
+};
+
+const logNewPrice = async (email, url) => {
+	const item = await getItem(url);
+	if (item === null) {
+		console.log(
+			"\n[-]\tI'm sorry, there's no item or the item is invalid at that url.\n[-]\tPlease double check that you have the right link.\n",
+		);
+		return;
+	}
+
+	try {
+		const res = await axios.post(`${process.env.DB_URL}/prices.json`, {
+			email,
+			url,
+			name: item.name,
+			price: Number(item.price.match(/[0-9]+.[0-9]+/g)[0]),
+		});
+		if (res.status !== 200 || res.statusText !== "OK") {
+			throw new Error("Server error");
+		}
+		console.log(`\n[+]\t ${item.name}`);
+		console.log(`[+]\t added at price ${item.price}\n`);
+		return "OK";
+	} catch (err) {
+		console.log(err.message);
+		console.log(
+			"\n[-]\tWe're having server issues right now.\n[-]\tPlease try again later!\n",
+		);
+		return "ERROR";
+	}
 };
 
 // cron.schedule("* * * * *", () => {
@@ -48,10 +84,10 @@ const sendPriceMail = async (product, price, link) => {
 // });
 
 const test = async () => {
-	const item = await getItem(
-		"https://www.amazon.com/dp/B0941YLJH6/ref=sspa_dk_detail_2?psc=1&pd_rd_i=B0941YLJH6&pd_rd_w=hnd18&pf_rd_p=80360d1c-2d74-4d2e-9034-f92fb5248b33&pd_rd_wg=DuVXj&pf_rd_r=6YVQPNCC1ZGNRZS0JECG&pd_rd_r=4fed79e9-ae18-4251-b210-b386e0a73501&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEzTlgzMDBNTFhMOE85JmVuY3J5cHRlZElkPUEwNDU5NzY5SDFKSTlGU1dQN1ZJJmVuY3J5cHRlZEFkSWQ9QTA4MjA0MjMyRUhTM1I1MDZCWVNXJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==",
+	const item = await logNewPrice(
+		"dax@dax.com",
+		"https://www.amazon.com/dp/B07JXTFJVB?tag=georiot-us-default-20&th=1&psc=1&ascsubtag=cbq-us-1298475855091195600-20&geniuslink=true",
 	);
-	console.log(item);
 };
 
 test();
