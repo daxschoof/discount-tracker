@@ -2,6 +2,7 @@ const cron = require("node-cron");
 const puppeteer = require("puppeteer");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
+const { item_list, email_list } = require("./item_list");
 require("dotenv").config();
 
 /*
@@ -22,6 +23,9 @@ const getItem = async url => {
 			let price_selector = document.querySelector("#priceblock_ourprice");
 			if (price_selector === null) {
 				price_selector = document.querySelector("#priceblock_dealprice");
+			}
+			if (price_selector === null) {
+				price_selector = document.querySelector("#priceblock_saleprice");
 			}
 			return {
 				name: name.innerText,
@@ -53,6 +57,10 @@ const checkPrices = async () => {
 	// Check if item is available
 	// Check if item is different price
 	// Update current price if changes, if lower email
+
+	try {
+	} catch (err) {}
+
 	return;
 };
 
@@ -115,10 +123,10 @@ const logNewPrice = async (email, url) => {
 // });
 
 const test = async () => {
-	const item = await logNewPrice(
-		"dax@dax.com",
-		"https://www.amazon.com/dp/B07JXTFJVB?tag=georiot-us-default-20&th=1&psc=1&ascsubtag=cbq-us-1298475855091195600-20&geniuslink=true",
-	);
+	for (item of item_list) {
+		const rand_index = Math.floor(Math.random() * email_list.length);
+		await logNewPrice(email_list[rand_index], item);
+	}
 };
 
 test();
