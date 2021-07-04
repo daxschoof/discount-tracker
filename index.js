@@ -71,9 +71,35 @@ const checkPrices = async () => {
 	@param url - the url of the item being tracked
 	@param email - the email address to send the item information to
 */
-const sendPriceMail = async (product, price, url, email) => {
+const sendPriceMail = async (product, originalPrice, newPrice, url, email) => {
 	// Send email with "Price Drop - product"
 	// Give item, price, original price (discount?), and url
+	try {
+		const transporter = nodemailer.createTransport({
+			service: "gmail",
+			auth: {
+				user: process.env.EMAIL_USER,
+				pass: process.env.EMAIL_PASS,
+			},
+		});
+		console.log(process.env.EMAIL_PASS);
+		let emailText = `There has been a price drop on item: ${product}!`;
+		let htmlText = `\n\nOriginal Price: $${originalPrice}`;
+		htmlText += `\nNew Price: $${newPrice}`;
+		htmlText += `\n\nLink to item: ${url}`;
+		htmlText += "\n\nThanks for using our price tracker!";
+
+		const info = await transporter.sendMail({
+			from: '"Price Checker" <helloworldl88t@gmail.com>',
+			to: email,
+			subject: `Price Drop - ${product}`,
+			text: `${emailText}${htmlText}`,
+			html: `<b>${emailText}</b>${htmlText}`,
+		});
+	} catch (err) {
+		console.log("Server Error! Please try again later");
+		console.log(err.message);
+	}
 	return;
 };
 
@@ -123,10 +149,11 @@ const logNewPrice = async (email, url) => {
 // });
 
 const test = async () => {
-	for (item of item_list) {
-		const rand_index = Math.floor(Math.random() * email_list.length);
-		await logNewPrice(email_list[rand_index], item);
-	}
+	// for (item of item_list) {
+	// 	const rand_index = Math.floor(Math.random() * email_list.length);
+	// 	await logNewPrice(email_list[rand_index], item);
+	// }
+	// sendPriceMail("Dell XPS 13", 400, 350, "amazon.com", "test@gmail.com");
 };
 
 test();
