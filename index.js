@@ -94,7 +94,7 @@ const checkPrices = async () => {
 				if (new_item.price < prices[i].original_price) {
 					await sendPriceMail(
 						prices[i].name,
-						price[i].original_price,
+						prices[i].original_price,
 						new_item.price,
 						prices[i].url,
 						prices[i].email,
@@ -130,7 +130,7 @@ const sendPriceMail = async (product, originalPrice, newPrice, url, email) => {
 
 		let emailText = `There has been a price drop on item: ${product}!`;
 		let htmlText = `\n\nOriginal Price: $${originalPrice}`;
-		htmlText += `\nNew Price: $${newPrice}`;
+		htmlText += `\nNew Price: $${newPrice}.`;
 		htmlText += `\n\nLink to item: ${url}`;
 		htmlText += "\n\nThanks for using our price tracker!";
 
